@@ -46,6 +46,10 @@ Modern test runners are powerful but often come with heavy configuration, slow s
 - **📦 Lightweight**: **Zero dependencies**. No bloat in your `node_modules`.
 - **🧠 Async First**: First-class support for `async/await` and Promises.
 - **🎨 Beautiful**: Clean, colorful terminal output with fail-fast options.
+- **🔁 Watch Mode**: Auto-rerun tests on file changes for rapid development.
+- **🎯 Focused Testing**: Use `.only()` and `.skip()` to control test execution.
+- **🪝 Test Hooks**: `beforeEach` and `afterEach` for setup and cleanup.
+- **⏱️ Timeout Support**: Configurable timeouts prevent hanging tests.
 
 ## 📦 Installation
 
@@ -72,6 +76,27 @@ test('async operations', async () => {
     const result = await Promise.resolve('success');
     expect(result).toBe('success');
 });
+
+// 3. Use hooks for setup/cleanup
+**Run it:**
+
+```bash
+npx tesht              # Run all tests
+npx tesht --watch      # Watch mode
+```
+
+afterEach(() => {
+    // Cleanup after each test
+});
+
+// 4. Skip or focus tests
+test.skip('not ready yet', () => {
+    // This test won't run
+});
+
+test.only('focus on this', () => {
+    // Only .only tests will run
+});
 ```
 
 **Run it:**
@@ -81,17 +106,40 @@ npx tesht
 ```
 
 ## 📖 API Reference
-
 ### Core Methods
 
 | Method | Description |
 |--------|-------------|
-| `test(name, fn)` | Registers a test case. `fn` can be async. |
-| `expect(value)` | Starts an assertion chain. |
-
+| `test(name, fn, options?)` | Registers a test case. `fn` can be async. |
+| `test.skip(name, fn)` | Skip this test. |
+| `test.only(name, fn)` | Only run this test (and other .only tests). |
 ### CLI Commands
 
 ```bash
+npx tesht              # Run all tests in current dir
+npx tesht src/         # Run tests in specific dir
+npx tesht --all        # Run all tests (disable fail-fast)
+npx tesht --watch      # Watch mode - rerun on changes
+npx tesht -w           # Watch mode (short flag)
+```timeout`: Test timeout in ms (default: 5000)
+### Matchers
+
+Tesht.js provides essential matchers for your assertions:
+
+| Matcher | Description | Example |
+| :--- | :--- | :--- |
+| `.toBe(expected)` | Strict equality (`===`). | `expect(x).toBe(5)` |
+| `.toEqual(expected)` | Deep equality for objects/arrays. | `expect(obj).toEqual({a:1})` |
+| `.toBeTruthy()` | Asserts value is truthy. | `expect(x).toBeTruthy()` |
+| `.toBeFalsy()` | Asserts value is falsy. | `expect(x).toBeFalsy()` |
+| `.toBeNull()` | Asserts value is `null`. | `expect(x).toBeNull()` |
+| `.toBeUndefined()` | Asserts value is `undefined`. | `expect(x).toBeUndefined()` |
+| `.toContain(item)` | Array/string contains item. | `expect([1,2]).toContain(2)` |
+| `.toHaveLength(n)` | Array/string has length `n`. | `expect([1,2]).toHaveLength(2)` |
+| `.toBeGreaterThan(n)` | Number is greater than `n`. | `expect(5).toBeGreaterThan(3)` |
+| `.toBeLessThan(n)` | Number is less than `n`. | `expect(3).toBeLessThan(5)` |
+| `.toMatch(regex)` | String matches regex. | `expect('hi').toMatch(/h/)` |
+| `.toThrow(msg?)` | Function throws an error. | `expect(fn).toThrow()` |
 npx tesht           # Run all tests in current dir
 npx tesht src/      # Run tests in specific dir
 npx tesht --all     # Run all tests (disable fail-fast)

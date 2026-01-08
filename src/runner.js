@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { pathToFileURL } from 'url';
-import { getTests, clearTests } from './index.js';
+import { getTests, clearTests, getHooks } from './index.js';
 
 // Extended ANSI color codes for rich terminal output
 const c = {
@@ -65,16 +65,10 @@ function gradient(text) {
  * Print the Tesht banner
  */
 function printBanner() {
-    const banner = `
-${c.bold}${gradient('   _            _     _      _     ')}
-${c.bold}${gradient('  | |_ ___  ___| |__ | |_   (_)___ ')}
-${c.bold}${gradient("  | __/ _ \\/ __| '_ \\| __|  | / __|")}
-${c.bold}${gradient('  | ||  __/\\__ \\ | | | |_ _ | \\__ \\')}
-${c.bold}${gradient('   \\__\\___||___/_| |_|\\__(_)/ |___/')}
-${c.bold}${gradient('                          |__/     ')}
-  ${c.dim}Fast • Minimal • Zero Config${c.reset}
-`;
-    console.log(banner);
+    const line = c.dim + '─'.repeat(50) + c.reset;
+    console.log(`\n${line}`);
+    console.log(`  ${gradient('tesht.js')} ${c.dim}→${c.reset} ${c.cyan}Fast${c.reset} ${c.dim}•${c.reset} ${c.magenta}Minimal${c.reset} ${c.dim}•${c.reset} ${c.yellow}Zero Config${c.reset}`);
+    console.log(`${line}\n`);
 }
 
 /**
@@ -148,7 +142,7 @@ export async function run(targetPath, options = {}) {
 
     // Check if path exists
     if (!fs.existsSync(resolvedPath)) {
-        console.log(`  ${c.brightRed}✗ Error:${c.reset} Path not found: ${c.yellow}${targetPath}${c.reset}`);
+        console.log(`${c.brightRed}✗ Path not found:${c.reset} ${targetPath}\n`);
         return { passed: 0, failed: 1, total: 1 };
     }
 
@@ -163,20 +157,19 @@ export async function run(targetPath, options = {}) {
     }
 
     if (testFiles.length === 0) {
-        console.log(`  ${c.yellow}⚠${c.reset}  No test files found`);
-        console.log(`  ${c.dim}Looking for *.test.js or *.tesht.js files${c.reset}\n`);
+        console.log(`${c.yellow}No test files found${c.reset} ${c.dim}(*.test.js or *.tesht.js)${c.reset}\n`);
         return { passed: 0, failed: 0, total: 0 };
     }
 
     // Show discovery info
-    console.log(`  ${c.cyan}◉${c.reset}  Found ${c.bold}${testFiles.length}${c.reset} test file(s)\n`);
+    console.log(`${c.dim}Found ${c.reset}${c.cyan}${testFiles.length}${c.reset} ${c.dim}test file(s)${c.reset}\n`);
 
     // Process each test file
     for (const file of testFiles) {
         const relativePath = path.relative(process.cwd(), file);
 
-        // Styled file path with folder icon
-        console.log(`  ${c.blue}📁${c.reset} ${c.bold}${c.white}${relativePath}${c.reset}`);
+        // Styled file path with icon
+        console.log(`${c.cyan}▶${c.reset} ${c.bold}${relativePath}${c.reset}`);
 
         // Clear previous tests
         clearTests();
@@ -186,8 +179,7 @@ export async function run(targetPath, options = {}) {
             const fileUrl = pathToFileURL(file).href;
             await import(fileUrl);
         } catch (err) {
-            console.log(`     ${c.brightRed}✗${c.reset} ${c.red}Failed to import${c.reset}`);
-            console.log(`       ${c.dim}${err.message}${c.reset}`);
+            console.log(`  ${c.brightRed}✗${c.reset} ${c.red}Import failed${c.reset}: ${c.dim}${err.message}${c.reset}`);
             failed++;
             failures.push({ file: relativePath, error: err.message });
 
@@ -199,16 +191,47 @@ export async function run(targetPath, options = {}) {
 
         // Run each test in the file
         const tests = getTests();
+        const hooks = getHooks();
 
-        for (const { name, fn } of tests) {
+        // Check if there are any .only tests
+        const hasOnly = tests.some(t => t.only);
+        const testsToRun = hasOnly ? tests.filter(t => t.only) : tests.filter(t => !t.skip);
+        const skippedCount = tests.length - testsToRun.length;
+
+        for (const { name, fn, skip, timeout } of testsToRun) {
             try {
-                // Support async tests
-                await fn();
-                console.log(`     ${c.brightGreen}✓${c.reset} ${c.dim}${name}${c.reset}`);
+                // Run beforeEach hooks
+                for (const hook of hooks.beforeEach) {
+                    await hook();
+                }
+
+                // Run test with timeout
+                await Promise.race([
+                    fn(),
+                    new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error(`Test timeout after ${timeout}ms`)), timeout)
+                    )
+                ]);
+
+                // Run afterEach hooks
+                for (const hook of hooks.afterEach) {
+                    await hook();
+                }
+
+                console.log(`  ${c.brightGreen}✓${c.reset} ${c.dim}${name}${c.reset}`);
                 passed++;
             } catch (err) {
-                console.log(`     ${c.brightRed}✗${c.reset} ${c.red}${name}${c.reset}`);
-                console.log(`       ${c.brightRed}→${c.reset} ${c.dim}${err.message.split('\n')[0]}${c.reset}`);
+                // Still run afterEach hooks on failure
+                try {
+                    for (const hook of hooks.afterEach) {
+                        await hook();
+                    }
+                } catch (hookErr) {
+                    // Ignore hook errors during cleanup
+                }
+
+                console.log(`  ${c.brightRed}✗${c.reset} ${c.red}${name}${c.reset}`);
+                console.log(`    ${c.dim}${err.message.split('\n')[0]}${c.reset}`);
                 failed++;
                 failures.push({ file: relativePath, test: name, error: err.message });
 
@@ -218,7 +241,12 @@ export async function run(targetPath, options = {}) {
             }
         }
 
-        console.log(''); // Space between files
+        // Show skipped count if any
+        if (skippedCount > 0) {
+            console.log(`  ${c.yellow}⊘${c.reset} ${c.dim}${skippedCount} skipped${c.reset}`);
+        }
+        
+        console.log(''); // Space after file
 
         // Break outer loop if failFast triggered
         if (failFast && failed > 0) {
@@ -229,33 +257,24 @@ export async function run(targetPath, options = {}) {
     const endTime = Date.now();
     const duration = endTime - startTime;
 
-    // Print styled summary
-    const summaryLine = '═'.repeat(44);
-
+    // Print compact summary
+    console.log('');
     if (failed > 0) {
-        console.log(`  ${c.red}${summaryLine}${c.reset}`);
-        console.log(`  ${c.red}║${c.reset}  ${c.bold}TEST RESULTS${c.reset}                            ${c.red}║${c.reset}`);
-        console.log(`  ${c.red}${summaryLine}${c.reset}`);
-        console.log(`  ${c.red}║${c.reset}  ${c.brightGreen}✓ ${passed} passed${c.reset}   ${c.brightRed}✗ ${failed} failed${c.reset}            ${c.red}║${c.reset}`);
-        console.log(`  ${c.red}║${c.reset}  ${c.dim}⏱  ${duration}ms${c.reset}                              ${c.red}║${c.reset}`);
-        console.log(`  ${c.red}${summaryLine}${c.reset}`);
+        console.log(`${c.brightRed}✗${c.reset} ${c.red}${failed} failed${c.reset} ${c.dim}│${c.reset} ${c.brightGreen}✓${c.reset} ${c.green}${passed} passed${c.reset} ${c.dim}│${c.reset} ${c.yellow}${duration}ms${c.reset}`);
 
         // Show failure details
         if (failures.length > 0) {
-            console.log(`\n  ${c.brightRed}${c.bold}FAILURES:${c.reset}`);
+            console.log(`\n${c.red}${c.bold}❯ Failures:${c.reset}`);
             for (const f of failures) {
-                console.log(`  ${c.red}●${c.reset} ${c.dim}${f.file}${c.reset}`);
                 if (f.test) {
-                    console.log(`    ${c.red}→${c.reset} ${f.test}`);
+                    console.log(`  ${c.red}•${c.reset} ${c.dim}${f.file}${c.reset} ${c.dim}→${c.reset} ${c.white}${f.test}${c.reset}`);
+                } else {
+                    console.log(`  ${c.red}•${c.reset} ${c.dim}${f.file}${c.reset}`);
                 }
             }
         }
     } else {
-        console.log(`  ${c.green}${summaryLine}${c.reset}`);
-        console.log(`  ${c.green}║${c.reset}  ${c.bold}${c.brightGreen}✓ ALL TESTS PASSED${c.reset}                     ${c.green}║${c.reset}`);
-        console.log(`  ${c.green}${summaryLine}${c.reset}`);
-        console.log(`  ${c.green}║${c.reset}  ${c.brightGreen}${passed} tests${c.reset} completed in ${c.cyan}${duration}ms${c.reset}           ${c.green}║${c.reset}`);
-        console.log(`  ${c.green}${summaryLine}${c.reset}`);
+        console.log(`${c.brightGreen}✓${c.reset} ${c.green}All tests passed!${c.reset} ${c.dim}│${c.reset} ${c.cyan}${passed}${c.reset} ${c.dim}tests${c.reset} ${c.dim}│${c.reset} ${c.yellow}${duration}ms${c.reset}`);
     }
 
     console.log('');
