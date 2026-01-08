@@ -1,0 +1,30 @@
+{
+  "name": "tesht",
+  "version": "1.0.0",
+  "description": "A fast, minimal, zero-config JavaScript test runner",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "bin": {
+    "tesht": "./bin/tesht.js"
+  },
+  "files": [
+    "src",
+    "bin"
+  ],
+  "keywords": [
+    "test",
+    "testing",
+    "runner",
+    "minimal",
+    "fast",
+    "zero-config"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
