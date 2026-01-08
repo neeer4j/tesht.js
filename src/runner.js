@@ -66,12 +66,12 @@ function gradient(text) {
  */
 function printBanner() {
     const banner = `
-${c.bold}${gradient('  ████████╗███████╗███████╗██╗  ██╗████████╗')}
-${c.bold}${gradient('  ╚══██╔══╝██╔════╝██╔════╝██║  ██║╚══██╔══╝')}
-${c.bold}${gradient('     ██║   █████╗  ███████╗███████║   ██║   ')}
-${c.bold}${gradient('     ██║   ██╔══╝  ╚════██║██╔══██║   ██║   ')}
-${c.bold}${gradient('     ██║   ███████╗███████║██║  ██║   ██║   ')}
-${c.bold}${gradient('     ╚═╝   ╚══════╝╚══════╝╚═╝  ╚═╝   ╚═╝   ')}
+${c.bold}${gradient('   _            _     _      _     ')}
+${c.bold}${gradient('  | |_ ___  ___| |__ | |_   (_)___ ')}
+${c.bold}${gradient("  | __/ _ \\/ __| '_ \\| __|  | / __|")}
+${c.bold}${gradient('  | ||  __/\\__ \\ | | | |_ _ | \\__ \\')}
+${c.bold}${gradient('   \\__\\___||___/_| |_|\\__(_)/ |___/')}
+${c.bold}${gradient('                          |__/     ')}
   ${c.dim}Fast • Minimal • Zero Config${c.reset}
 `;
     console.log(banner);

@@ -1,119 +1,105 @@
 <div align="center">
 
-```
-  ████████╗███████╗███████╗██╗  ██╗████████╗
-  ╚══██╔══╝██╔════╝██╔════╝██║  ██║╚══██╔══╝
-     ██║   █████╗  ███████╗███████║   ██║   
-     ██║   ██╔══╝  ╚════██║██╔══██║   ██║   
-     ██║   ███████╗███████║██║  ██║   ██║   
-     ╚═╝   ╚══════╝╚══════╝╚═╝  ╚═╝   ╚═╝   
-```
+<table>
+  <tr>
+    <td align="center">
+      <pre>
+  _            _     _      _     
+ | |_ ___  ___| |__ | |_   (_)___
+ | __/ _ \/ __| '_ \| __|  | / __|
+ | ||  __/\__ \ | | | |_ _ | \__ \
+  \__\___||___/_| |_|\__(_)/ |___/
+                         |__/
+      </pre>
+    </td>
+  </tr>
+</table>
 
-# Tesht.js
+### The Minimalist JavaScript Test Runner
 
-**The Minimalist JavaScript Test Runner.**<br>
-Zero config. Zero dependencies. Blazing fast.
+[![npm version](https://img.shields.io/npm/v/tesht.js.svg?style=flat-square)](https://www.npmjs.com/package/tesht.js)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg?style=flat-square)](https://nodejs.org)
 
-[![npm version](https://img.shields.io/npm/v/tesht.js.svg?style=flat-square&color=black)](https://www.npmjs.com/package/tesht.js)
-[![License: MIT](https://img.shields.io/badge/License-MIT-black.svg?style=flat-square)](https://opensource.org/licenses/MIT)
-[![Node.js](https://img.shields.io/badge/Node.js-18+-black.svg?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
-[![Downloads](https://img.shields.io/npm/dt/tesht.js.svg?style=flat-square&color=black)](https://www.npmjs.com/package/tesht.js)
+**Zero config. Zero dependencies. Blazing fast.**<br>
+Instant feedback for developers who want results without the bloat.
 
-<br>
-
-[**Installation**](#installation) • [**Usage**](#usage) • [**API**](#api-reference)
+[Installation](#-installation) • [Quick Start](#-quick-start) • [Features](#-features) • [API Reference](#-api-reference) • [Contributing](#-contributing)
 
 </div>
 
 ---
 
-## 🚀 Overview
+## 💡 Motivation
 
-**Tesht.js** is built for developers who want instant feedback without the bloat.
-It strips away the complexity of modern test runners, leaving you with just what you need: **speed and simplicity.**
+Modern test runners are powerful but often come with heavy configuration, slow startup times, and massive dependency trees.
+
+**tesht.js** strips away the complexity. It gives you instant startup, a clean API, and zero overhead. It's built for when you just need to write a test and run it—fast.
 
 > [!NOTE]
 > **Why `tesht.js`?** The package names `test` and `tesht` are reserved/taken on npm, so we use `tesht.js`.
 
----
-
 ## ✨ Features
 
-| Feature | Description |
-| :--- | :--- |
-| **⚡️ Instant Startup** | Boots in **~50ms** vs Jest's ~500ms+. No waiting. |
-| **🛠️ Zero Config** | Works immediately. No `tesht.config.js` required. |
-| **📦 Lightweight** | **Zero dependencies**. Adds no bloat to your `node_modules`. |
-| **🧠 Async First** | First-class support for `async/await` and Promises. |
-| **🎨 Beautiful** | Clean, colorful terminal output with fail-fast options. |
-
----
+- **⚡️ Instant Startup**: Boots in **~50ms**. No waiting.
+- **🛠️ Zero Config**: Works immediately. No config files required.
+- **📦 Lightweight**: **Zero dependencies**. No bloat in your `node_modules`.
+- **🧠 Async First**: First-class support for `async/await` and Promises.
+- **🎨 Beautiful**: Clean, colorful terminal output with fail-fast options.
 
 ## 📦 Installation
 
-Install via npm as a development dependency:
+> [!IMPORTANT]
+> Run the following command to install the package as a development dependency:
+> ```bash
+> npm install tesht.js --save-dev
+> ```
 
-```bash
-npm install tesht.js --save-dev
-```
+## 🚀 Quick Start
 
----
-
-## 🏁 Usage
-
-### 1. Create a test file
-
-Name it `whatever.test.js` (or `.tesht.js`):
+Here's how easy it is to get started:
 
 ```javascript
 import { test, expect } from 'tesht.js';
 
+// 1. Write a test (e.g., math.test.js)
 test('basic arithmetic', () => {
     expect(1 + 1).toBe(2);
 });
 
+// 2. Async works automatically
 test('async operations', async () => {
     const result = await Promise.resolve('success');
     expect(result).toBe('success');
 });
 ```
 
-### 2. Run it
-
-Run all tests in your current directory:
+**Run it:**
 
 ```bash
 npx tesht
 ```
 
----
+## 📖 API Reference
 
-## 🔧 CLI Reference
+### Core Methods
 
-Tesht.js automatically finds test files in your project.
+| Method | Description |
+|--------|-------------|
+| `test(name, fn)` | Registers a test case. `fn` can be async. |
+| `expect(value)` | Starts an assertion chain. |
+
+### CLI Commands
 
 ```bash
-npx tesht [path] [options]
+npx tesht           # Run all tests in current dir
+npx tesht src/      # Run tests in specific dir
+npx tesht --all     # Run all tests (disable fail-fast)
 ```
 
-| Command | Description |
-| :--- | :--- |
-| `npx tesht` | Run tests in the current directory and subdirectories. |
-| `npx tesht src/` | Run tests only inside the `src/` directory. |
-| `npx tesht --all` | Run **all** tests (disable "fail-fast" mode). |
-| `npx tesht --help` | Display the help menu. |
+### Matchers
 
----
-
-## 📚 API Reference
-
-### `test(name, fn)`
-Registers a test case.
-- `name` _(string)_: Description of the test.
-- `fn` _(function)_: The test logic. Can be `async`.
-
-### `expect(value)`
-Starts an assertion chain.
+Tesht.js provides essential matchers for your assertions:
 
 | Matcher | Description | Example |
 | :--- | :--- | :--- |
@@ -123,23 +109,16 @@ Starts an assertion chain.
 | `.toBeFalsy()` | Asserts value is falsy. | `expect(x).toBeFalsy()` |
 | `.toThrow(msg?)` | Asserts function throws an error. | `expect(fn).toThrow()` |
 
----
+## 🤝 Contributing
 
-## ⚖️ Comparison
+We welcome contributions! Please feel free to open issues or submit PRs.
 
-| | **Tesht.js** | **Jest / Mocha** |
-| :--- | :---: | :---: |
-| **Setup Time** | 0s | ~5m |
-| **Config Required** | No | Yes |
-| **Dependencies** | 0 | 50+ |
-| **Startup Speed** | 🚀 Immediate | 🐢 Slow |
+## 📄 License
 
----
+MIT License © 2026
 
-<div align="center">
+<br>
 
-**[GitHub](https://github.com/neeer4j/tesht.js)** • **[npm](https://www.npmjs.com/package/tesht.js)**
-
-<sub>MIT License © 2026</sub>
-
-</div>
+<p align="center">
+  Made with ❤️ by <a href="https://github.com/neeer4j">neeer4j</a>
+</p>
