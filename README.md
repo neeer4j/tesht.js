@@ -9,57 +9,78 @@
      ╚═╝   ╚══════╝╚══════╝╚═╝  ╚═╝   ╚═╝   
 ```
 
-### ⚡ Fast • Minimal • Zero Config
+# Tesht.js
 
-A blazing fast JavaScript test runner that gets out of your way.
+**The Minimalist JavaScript Test Runner.**<br>
+Zero config. Zero dependencies. Blazing fast.
 
-[![npm version](https://img.shields.io/npm/v/tesht.js.svg?style=flat-square)](https://www.npmjs.com/package/tesht.js)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](https://opensource.org/licenses/MIT)
-[![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![npm version](https://img.shields.io/npm/v/tesht.js.svg?style=flat-square&color=black)](https://www.npmjs.com/package/tesht.js)
+[![License: MIT](https://img.shields.io/badge/License-MIT-black.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-black.svg?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Downloads](https://img.shields.io/npm/dt/tesht.js.svg?style=flat-square&color=black)](https://www.npmjs.com/package/tesht.js)
+
+<br>
+
+[**Installation**](#installation) • [**Usage**](#usage) • [**API**](#api-reference)
 
 </div>
 
 ---
 
-## Why Tesht?
+## 🚀 Overview
 
-| Feature | Tesht | Others |
-|---------|-------|--------|
-| Startup time | ~50ms | 500ms+ |
-| Dependencies | **0** | 50+ |
-| Config files | **0** | 1-3 |
-| Learning curve | Minutes | Hours |
+**Tesht.js** is built for developers who want instant feedback without the bloat.
+It strips away the complexity of modern test runners, leaving you with just what you need: **speed and simplicity.**
 
-> **Built for developers who value speed and simplicity.**
+> [!NOTE]
+> **Why `tesht.js`?** The package names `test` and `tesht` are reserved/taken on npm, so we use `tesht.js`.
 
 ---
 
-## Quick Start
+## ✨ Features
+
+| Feature | Description |
+| :--- | :--- |
+| **⚡️ Instant Startup** | Boots in **~50ms** vs Jest's ~500ms+. No waiting. |
+| **🛠️ Zero Config** | Works immediately. No `tesht.config.js` required. |
+| **📦 Lightweight** | **Zero dependencies**. Adds no bloat to your `node_modules`. |
+| **🧠 Async First** | First-class support for `async/await` and Promises. |
+| **🎨 Beautiful** | Clean, colorful terminal output with fail-fast options. |
+
+---
+
+## 📦 Installation
+
+Install via npm as a development dependency:
 
 ```bash
-# Install
 npm install tesht.js --save-dev
-
-# Run
-npx tesht
 ```
 
-Create `example.test.js`:
+---
+
+## 🏁 Usage
+
+### 1. Create a test file
+
+Name it `whatever.test.js` (or `.tesht.js`):
 
 ```javascript
 import { test, expect } from 'tesht.js';
 
-test('math works', () => {
-  expect(1 + 1).toBe(2);
+test('basic arithmetic', () => {
+    expect(1 + 1).toBe(2);
 });
 
-test('async works', async () => {
-  const data = await Promise.resolve({ ok: true });
-  expect(data).toEqual({ ok: true });
+test('async operations', async () => {
+    const result = await Promise.resolve('success');
+    expect(result).toBe('success');
 });
 ```
 
-Run it:
+### 2. Run it
+
+Run all tests in your current directory:
 
 ```bash
 npx tesht
@@ -67,79 +88,58 @@ npx tesht
 
 ---
 
-## CLI
+## 🔧 CLI Reference
+
+Tesht.js automatically finds test files in your project.
 
 ```bash
-tesht                     # Run all tests
-tesht src/                # Run tests in folder
-tesht path/to/file.test.js # Run specific file
-tesht --all               # Don't stop on first failure
-tesht --help              # Show help
+npx tesht [path] [options]
 ```
+
+| Command | Description |
+| :--- | :--- |
+| `npx tesht` | Run tests in the current directory and subdirectories. |
+| `npx tesht src/` | Run tests only inside the `src/` directory. |
+| `npx tesht --all` | Run **all** tests (disable "fail-fast" mode). |
+| `npx tesht --help` | Display the help menu. |
 
 ---
 
-## Matchers
+## 📚 API Reference
+
+### `test(name, fn)`
+Registers a test case.
+- `name` _(string)_: Description of the test.
+- `fn` _(function)_: The test logic. Can be `async`.
+
+### `expect(value)`
+Starts an assertion chain.
 
 | Matcher | Description | Example |
-|---------|-------------|---------|
-| `toBe(x)` | Strict equality | `expect(1).toBe(1)` |
-| `toEqual(x)` | Deep equality | `expect({a:1}).toEqual({a:1})` |
-| `toBeTruthy()` | Is truthy | `expect(1).toBeTruthy()` |
-| `toBeFalsy()` | Is falsy | `expect(0).toBeFalsy()` |
-| `toThrow()` | Throws error | `expect(() => { throw Error() }).toThrow()` |
+| :--- | :--- | :--- |
+| `.toBe(expected)` | Strict equality (`===`). | `expect(x).toBe(5)` |
+| `.toEqual(expected)` | Deep equality for objects/arrays. | `expect(obj).toEqual({a:1})` |
+| `.toBeTruthy()` | Asserts value is truthy. | `expect(x).toBeTruthy()` |
+| `.toBeFalsy()` | Asserts value is falsy. | `expect(x).toBeFalsy()` |
+| `.toThrow(msg?)` | Asserts function throws an error. | `expect(fn).toThrow()` |
 
 ---
 
-## File Discovery
+## ⚖️ Comparison
 
-Tesht automatically finds:
-- `*.test.js`
-- `*.tesht.js`
-
-Skips `node_modules` and hidden folders.
-
----
-
-## Philosophy
-
-```
-Speed > Features
-Clarity > Magic
-Defaults > Config
-```
-
-**What we DON'T do:**
-- ❌ Babel/TypeScript transpilation
-- ❌ Code coverage
-- ❌ Snapshot testing
-- ❌ DOM/Browser testing
-- ❌ Complex mocking
-
-**What we DO well:**
-- ✅ Run tests instantly
-- ✅ Zero setup required
-- ✅ Async/await support
-- ✅ Clear error messages
-- ✅ Beautiful terminal output
-
----
-
-## Requirements
-
-- Node.js 18+
-- ES Modules (`"type": "module"` in package.json)
-
----
-
-## License
-
-MIT © 2024
+| | **Tesht.js** | **Jest / Mocha** |
+| :--- | :---: | :---: |
+| **Setup Time** | 0s | ~5m |
+| **Config Required** | No | Yes |
+| **Dependencies** | 0 | 50+ |
+| **Startup Speed** | 🚀 Immediate | 🐢 Slow |
 
 ---
 
 <div align="center">
 
-**Made with ❤️ for developers who ship fast.**
+**[GitHub](https://github.com/neeer4j/tesht.js)** • **[npm](https://www.npmjs.com/package/tesht.js)**
+
+<sub>MIT License © 2026</sub>
 
 </div>
