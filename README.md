@@ -13,7 +13,7 @@
 
 A blazing fast JavaScript test runner that gets out of your way.
 
-[![npm version](https://img.shields.io/npm/v/@neeer4j/tesht.svg?style=flat-square)](https://www.npmjs.com/package/@neeer4j/tesht)
+[![npm version](https://img.shields.io/npm/v/tesht.js.svg?style=flat-square)](https://www.npmjs.com/package/tesht.js)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
 
@@ -38,7 +38,7 @@ A blazing fast JavaScript test runner that gets out of your way.
 
 ```bash
 # Install
-npm install @neeer4j/tesht --save-dev
+npm install tesht.js --save-dev
 
 # Run
 npx tesht
@@ -47,7 +47,7 @@ npx tesht
 Create `example.test.js`:
 
 ```javascript
-import { test, expect } from '@neeer4j/tesht';
+import { test, expect } from 'tesht.js';
 
 test('math works', () => {
   expect(1 + 1).toBe(2);
