@@ -110,7 +110,10 @@ function findTestFiles(dir, files = []) {
             }
             findTestFiles(fullPath, files);
         } else if (entry.isFile()) {
-            if (entry.name.endsWith('.test.js') || entry.name.endsWith('.tesht.js')) {
+            if (entry.name.endsWith('.test.js') ||
+                entry.name.endsWith('.tesht.js') ||
+                entry.name.endsWith('.test.ts') ||
+                entry.name.endsWith('.tesht.ts')) {
                 files.push(fullPath);
             }
         }
@@ -157,7 +160,7 @@ export async function run(targetPath, options = {}) {
     }
 
     if (testFiles.length === 0) {
-        console.log(`${c.yellow}No test files found${c.reset} ${c.dim}(*.test.js or *.tesht.js)${c.reset}\n`);
+        console.log(`${c.yellow}No test files found${c.reset} ${c.dim}(*.test.js, *.test.ts, etc)${c.reset}\n`);
         return { passed: 0, failed: 0, total: 0 };
     }
 
@@ -208,7 +211,7 @@ export async function run(targetPath, options = {}) {
                 // Run test with timeout
                 await Promise.race([
                     fn(),
-                    new Promise((_, reject) => 
+                    new Promise((_, reject) =>
                         setTimeout(() => reject(new Error(`Test timeout after ${timeout}ms`)), timeout)
                     )
                 ]);
@@ -245,7 +248,7 @@ export async function run(targetPath, options = {}) {
         if (skippedCount > 0) {
             console.log(`  ${c.yellow}⊘${c.reset} ${c.dim}${skippedCount} skipped${c.reset}`);
         }
-        
+
         console.log(''); // Space after file
 
         // Break outer loop if failFast triggered

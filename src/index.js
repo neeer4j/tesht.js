@@ -1,4 +1,5 @@
 import { createExpect } from './assertions.js';
+import { fn, spyOn } from './mock.js';
 
 /**
  * Internal registry of tests
@@ -22,10 +23,10 @@ let hooks = {
  * @param {number} options.timeout - Timeout in ms (default: 5000)
  */
 export function test(name, fn, options = {}) {
-    tests.push({ 
-        name, 
-        fn, 
-        skip: false, 
+    tests.push({
+        name,
+        fn,
+        skip: false,
         only: false,
         timeout: options.timeout || 5000
     });
@@ -36,11 +37,11 @@ export function test(name, fn, options = {}) {
  * @param {string} name - Test description
  * @param {Function} fn - Test function (can be async)
  */
-test.skip = function(name, fn, options = {}) {
-    tests.push({ 
-        name, 
-        fn, 
-        skip: true, 
+test.skip = function (name, fn, options = {}) {
+    tests.push({
+        name,
+        fn,
+        skip: true,
         only: false,
         timeout: options.timeout || 5000
     });
@@ -51,11 +52,11 @@ test.skip = function(name, fn, options = {}) {
  * @param {string} name - Test description
  * @param {Function} fn - Test function (can be async)
  */
-test.only = function(name, fn, options = {}) {
-    tests.push({ 
-        name, 
-        fn, 
-        skip: false, 
+test.only = function (name, fn, options = {}) {
+    tests.push({
+        name,
+        fn,
+        skip: false,
         only: true,
         timeout: options.timeout || 5000
     });
@@ -126,3 +127,10 @@ export function afterEach(fn) {
 export function getHooks() {
     return hooks;
 }
+
+/**
+ * Create a mock function
+ * @param {Function} [implementation] - Optional implementation
+ * @returns {Function} - Mock function
+ */
+export { fn, spyOn };

@@ -6,22 +6,22 @@
  */
 function deepEqual(a, b) {
   if (a === b) return true;
-  
+
   if (a === null || b === null) return a === b;
   if (typeof a !== 'object' || typeof b !== 'object') return false;
-  
+
   if (Array.isArray(a) !== Array.isArray(b)) return false;
-  
+
   const keysA = Object.keys(a);
   const keysB = Object.keys(b);
-  
+
   if (keysA.length !== keysB.length) return false;
-  
+
   for (const key of keysA) {
     if (!keysB.includes(key)) return false;
     if (!deepEqual(a[key], b[key])) return false;
   }
-  
+
   return true;
 }
 
@@ -103,7 +103,7 @@ export function createExpect(received) {
 
       if (expected !== undefined) {
         const message = error?.message || String(error);
-        
+
         if (expected instanceof RegExp) {
           if (!expected.test(message)) {
             throw new Error(
@@ -158,7 +158,7 @@ export function createExpect(received) {
         const found = typeof item === 'object' && item !== null
           ? received.some(el => deepEqual(el, item))
           : received.includes(item);
-        
+
         if (!found) {
           throw new Error(
             `Expected array to contain: ${JSON.stringify(item)}\nReceived: ${JSON.stringify(received)}`
@@ -230,6 +230,53 @@ export function createExpect(received) {
       if (length !== expected) {
         throw new Error(
           `Expected length: ${expected}\nReceived length: ${length}`
+        );
+      }
+    },
+
+    /**
+     * Check if mock function was called
+     */
+    toHaveBeenCalled() {
+      if (!received || !received.mock) {
+        throw new Error('Expected a mock function');
+      }
+
+      if (received.mock.calls.length === 0) {
+        throw new Error('Expected mock function to be called');
+      }
+    },
+
+    /**
+     * Check if mock function was called n times
+     * @param {number} times - Expected number of calls
+     */
+    toHaveBeenCalledTimes(times) {
+      if (!received || !received.mock) {
+        throw new Error('Expected a mock function');
+      }
+
+      const actual = received.mock.calls.length;
+      if (actual !== times) {
+        throw new Error(`Expected mock to be called ${times} times, but was called ${actual} times`);
+      }
+    },
+
+    /**
+     * Check if mock function was called with specific arguments
+     * @param {...*} args - Expected arguments
+     */
+    toHaveBeenCalledWith(...args) {
+      if (!received || !received.mock) {
+        throw new Error('Expected a mock function');
+      }
+
+      const calls = received.mock.calls;
+      const wasCalledWith = calls.some(call => deepEqual(call, args));
+
+      if (!wasCalledWith) {
+        throw new Error(
+          `Expected mock to be called with: ${JSON.stringify(args)}\nActual calls: ${JSON.stringify(calls)}`
         );
       }
     }
