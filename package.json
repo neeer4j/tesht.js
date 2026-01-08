@@ -1,5 +1,5 @@
 {
-  "name": "tesht",
+  "name": "@neeer4j/tesht",
   "version": "1.0.0",
   "description": "A fast, minimal, zero-config JavaScript test runner",
   "type": "module",
