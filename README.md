@@ -1,19 +1,6 @@
 <div align="center">
-
-<table>
-  <tr>
-    <td align="center">
-      <pre>
-  _            _     _      _     
- | |_ ___  ___| |__ | |_   (_)___
- | __/ _ \/ __| '_ \| __|  | / __|
- | ||  __/\__ \ | | | |_ _ | \__ \
-  \__\___||___/_| |_|\__(_)/ |___/
-                         |__/
-      </pre>
-    </td>
-  </tr>
-</table>
+  <img src="tesht.png" alt="tesht.js logo" height="150" />
+</div>
 
 ### The Minimalist JavaScript Test Runner
 
