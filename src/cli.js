@@ -26,7 +26,7 @@ function parseArgs(args) {
             printHelp();
             process.exit(0);
         } else if (arg === '--version' || arg === '-v') {
-            console.log('tesht v1.0.0');
+            console.log('tesht v1.2.1');
             process.exit(0);
         } else if (!arg.startsWith('-')) {
             options.path = arg;
