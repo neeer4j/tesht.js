@@ -11,7 +11,8 @@ function parseArgs(args) {
     const options = {
         path: '.',
         failFast: true,
-        watch: false
+        watch: false,
+        plain: false
     };
 
     for (const arg of args) {
@@ -19,6 +20,8 @@ function parseArgs(args) {
             options.failFast = false;
         } else if (arg === '--watch' || arg === '-w') {
             options.watch = true;
+        } else if (arg === '--plain' || arg === '--ci' || arg === '-p') {
+            options.plain = true;
         } else if (arg === '--help' || arg === '-h') {
             printHelp();
             process.exit(0);
@@ -47,9 +50,10 @@ Arguments:
   path          Directory or file to test (default: current directory)
 
 Options:
-  --all, -a     Run all tests, don't stop on first failure
-  --watch, -w   Watch mode - rerun tests on file changes
-  --help, -h    Show this help message
+  --all, -a         Run all tests, don't stop on first failure
+  --watch, -w       Watch mode - rerun tests on file changes
+  --plain, --ci, -p Plain output without ANSI colors/formatting (for CI)
+  --help, -h        Show this help message
   --version, -v Show version number
 
 Examples:
@@ -131,9 +135,9 @@ export async function main() {
 
     try {
         if (options.watch) {
-            await watchMode(options.path, { failFast: options.failFast });
+            await watchMode(options.path, { failFast: options.failFast, plain: options.plain });
         } else {
-            const result = await run(options.path, { failFast: options.failFast });
+            const result = await run(options.path, { failFast: options.failFast, plain: options.plain });
             process.exit(result.failed > 0 ? 1 : 0);
         }
     } catch (err) {

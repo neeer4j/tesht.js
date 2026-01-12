@@ -107,7 +107,8 @@ npx tesht              # Run all tests in current dir
 npx tesht src/         # Run tests in specific dir
 npx tesht --all        # Run all tests (disable fail-fast)
 npx tesht --watch      # Watch mode - rerun on changes
-npx tesht -w           # Watch mode (short flag)
+npx tesht --plain      # CI-friendly output (no colors/unicode)
+npx tesht --ci         # Alias for --plain
 ```timeout`: Test timeout in ms (default: 5000)
 ### Matchers
 

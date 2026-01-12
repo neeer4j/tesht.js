@@ -3,8 +3,12 @@ import path from 'path';
 import { pathToFileURL } from 'url';
 import { getTests, clearTests, getHooks } from './index.js';
 
+// Global plain mode flag - set by run()
+let isPlainMode = false;
+
 // Extended ANSI color codes for rich terminal output
-const c = {
+// Returns actual codes or empty strings based on isPlainMode
+const ANSI = {
     // Basic colors
     reset: '\x1b[0m',
     bold: '\x1b[1m',
@@ -41,6 +45,13 @@ const c = {
     bgCyan: '\x1b[46m',
 };
 
+// Create a proxy that returns empty strings in plain mode
+const c = new Proxy(ANSI, {
+    get(target, prop) {
+        return isPlainMode ? '' : target[prop];
+    }
+});
+
 // Gradient colors for the banner (cyan -> magenta)
 const gradientColors = [
     '\x1b[96m', // bright cyan
@@ -50,21 +61,31 @@ const gradientColors = [
 ];
 
 /**
- * Apply gradient effect to text
+ * Apply gradient effect to text (or return plain text in plain mode)
  */
 function gradient(text) {
+    if (isPlainMode) {
+        return text;
+    }
     let result = '';
     for (let i = 0; i < text.length; i++) {
         const colorIndex = Math.floor((i / text.length) * gradientColors.length);
         result += gradientColors[colorIndex] + text[i];
     }
-    return result + c.reset;
+    return result + ANSI.reset;
 }
 
 /**
  * Print the Tesht banner
  */
 function printBanner() {
+    if (isPlainMode) {
+        const line = '-'.repeat(50);
+        console.log(`\n${line}`);
+        console.log(`  tesht.js -> Fast * Minimal * Zero Config`);
+        console.log(`${line}\n`);
+        return;
+    }
     const line = c.dim + '─'.repeat(50) + c.reset;
     console.log(`\n${line}`);
     console.log(`  ${gradient('tesht.js')} ${c.dim}→${c.reset} ${c.cyan}Fast${c.reset} ${c.dim}•${c.reset} ${c.magenta}Minimal${c.reset} ${c.dim}•${c.reset} ${c.yellow}Zero Config${c.reset}`);
@@ -72,9 +93,16 @@ function printBanner() {
 }
 
 /**
- * Print a styled box around text
+ * Print a styled box around text (plain version for CI)
  */
 function printBox(text, style = 'info') {
+    if (isPlainMode) {
+        const line = '-'.repeat(text.length + 2);
+        console.log(`+${line}+`);
+        console.log(`| ${text} |`);
+        console.log(`+${line}+`);
+        return;
+    }
     const colors = {
         info: c.cyan,
         success: c.brightGreen,
@@ -90,6 +118,18 @@ function printBox(text, style = 'info') {
 
 // Keep old reference for compatibility
 const colors = c;
+
+// Symbol helper - returns Unicode or ASCII based on plain mode
+const sym = {
+    get check() { return isPlainMode ? '[PASS]' : '✓'; },
+    get cross() { return isPlainMode ? '[FAIL]' : '✗'; },
+    get arrow() { return isPlainMode ? '->' : '→'; },
+    get bullet() { return isPlainMode ? '*' : '•'; },
+    get play() { return isPlainMode ? '>' : '▶'; },
+    get skip() { return isPlainMode ? '[SKIP]' : '⊘'; },
+    get chevron() { return isPlainMode ? '>' : '❯'; },
+    get pipe() { return isPlainMode ? '|' : '│'; },
+};
 
 /**
  * Recursively find test files in a directory
@@ -130,7 +170,11 @@ function findTestFiles(dir, files = []) {
  * @returns {Promise<{passed: number, failed: number, total: number}>}
  */
 export async function run(targetPath, options = {}) {
-    const { failFast = true } = options;
+    const { failFast = true, plain = false } = options;
+
+    // Set plain mode - auto-detect if not explicitly set
+    // Enable plain mode if: explicitly requested, or not a TTY, or CI environment
+    isPlainMode = plain || !process.stdout.isTTY || !!process.env.CI;
 
     // Print the fancy banner
     printBanner();
@@ -145,7 +189,7 @@ export async function run(targetPath, options = {}) {
 
     // Check if path exists
     if (!fs.existsSync(resolvedPath)) {
-        console.log(`${c.brightRed}✗ Path not found:${c.reset} ${targetPath}\n`);
+        console.log(`${c.brightRed}${sym.cross} Path not found:${c.reset} ${targetPath}\n`);
         return { passed: 0, failed: 1, total: 1 };
     }
 
@@ -172,7 +216,7 @@ export async function run(targetPath, options = {}) {
         const relativePath = path.relative(process.cwd(), file);
 
         // Styled file path with icon
-        console.log(`${c.cyan}▶${c.reset} ${c.bold}${relativePath}${c.reset}`);
+        console.log(`${c.cyan}${sym.play}${c.reset} ${c.bold}${relativePath}${c.reset}`);
 
         // Clear previous tests
         clearTests();
@@ -182,7 +226,7 @@ export async function run(targetPath, options = {}) {
             const fileUrl = pathToFileURL(file).href;
             await import(fileUrl);
         } catch (err) {
-            console.log(`  ${c.brightRed}✗${c.reset} ${c.red}Import failed${c.reset}: ${c.dim}${err.message}${c.reset}`);
+            console.log(`  ${c.brightRed}${sym.cross}${c.reset} ${c.red}Import failed${c.reset}: ${c.dim}${err.message}${c.reset}`);
             failed++;
             failures.push({ file: relativePath, error: err.message });
 
@@ -221,7 +265,7 @@ export async function run(targetPath, options = {}) {
                     await hook();
                 }
 
-                console.log(`  ${c.brightGreen}✓${c.reset} ${c.dim}${name}${c.reset}`);
+                console.log(`  ${c.brightGreen}${sym.check}${c.reset} ${c.dim}${name}${c.reset}`);
                 passed++;
             } catch (err) {
                 // Still run afterEach hooks on failure
@@ -233,7 +277,7 @@ export async function run(targetPath, options = {}) {
                     // Ignore hook errors during cleanup
                 }
 
-                console.log(`  ${c.brightRed}✗${c.reset} ${c.red}${name}${c.reset}`);
+                console.log(`  ${c.brightRed}${sym.cross}${c.reset} ${c.red}${name}${c.reset}`);
                 console.log(`    ${c.dim}${err.message.split('\n')[0]}${c.reset}`);
                 failed++;
                 failures.push({ file: relativePath, test: name, error: err.message });
@@ -244,9 +288,8 @@ export async function run(targetPath, options = {}) {
             }
         }
 
-        // Show skipped count if any
         if (skippedCount > 0) {
-            console.log(`  ${c.yellow}⊘${c.reset} ${c.dim}${skippedCount} skipped${c.reset}`);
+            console.log(`  ${c.yellow}${sym.skip}${c.reset} ${c.dim}${skippedCount} skipped${c.reset}`);
         }
 
         console.log(''); // Space after file
@@ -263,21 +306,21 @@ export async function run(targetPath, options = {}) {
     // Print compact summary
     console.log('');
     if (failed > 0) {
-        console.log(`${c.brightRed}✗${c.reset} ${c.red}${failed} failed${c.reset} ${c.dim}│${c.reset} ${c.brightGreen}✓${c.reset} ${c.green}${passed} passed${c.reset} ${c.dim}│${c.reset} ${c.yellow}${duration}ms${c.reset}`);
+        console.log(`${c.brightRed}${sym.cross}${c.reset} ${c.red}${failed} failed${c.reset} ${c.dim}${sym.pipe}${c.reset} ${c.brightGreen}${sym.check}${c.reset} ${c.green}${passed} passed${c.reset} ${c.dim}${sym.pipe}${c.reset} ${c.yellow}${duration}ms${c.reset}`);
 
         // Show failure details
         if (failures.length > 0) {
-            console.log(`\n${c.red}${c.bold}❯ Failures:${c.reset}`);
+            console.log(`\n${c.red}${c.bold}${sym.chevron} Failures:${c.reset}`);
             for (const f of failures) {
                 if (f.test) {
-                    console.log(`  ${c.red}•${c.reset} ${c.dim}${f.file}${c.reset} ${c.dim}→${c.reset} ${c.white}${f.test}${c.reset}`);
+                    console.log(`  ${c.red}${sym.bullet}${c.reset} ${c.dim}${f.file}${c.reset} ${c.dim}${sym.arrow}${c.reset} ${c.white}${f.test}${c.reset}`);
                 } else {
-                    console.log(`  ${c.red}•${c.reset} ${c.dim}${f.file}${c.reset}`);
+                    console.log(`  ${c.red}${sym.bullet}${c.reset} ${c.dim}${f.file}${c.reset}`);
                 }
             }
         }
     } else {
-        console.log(`${c.brightGreen}✓${c.reset} ${c.green}All tests passed!${c.reset} ${c.dim}│${c.reset} ${c.cyan}${passed}${c.reset} ${c.dim}tests${c.reset} ${c.dim}│${c.reset} ${c.yellow}${duration}ms${c.reset}`);
+        console.log(`${c.brightGreen}${sym.check}${c.reset} ${c.green}All tests passed!${c.reset} ${c.dim}${sym.pipe}${c.reset} ${c.cyan}${passed}${c.reset} ${c.dim}tests${c.reset} ${c.dim}${sym.pipe}${c.reset} ${c.yellow}${duration}ms${c.reset}`);
     }
 
     console.log('');
