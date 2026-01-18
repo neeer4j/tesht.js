@@ -10,6 +10,9 @@
   "bin": {
     "tesht": "./bin/tesht.js"
   },
+  "scripts": {
+    "test": "node bin/tesht.js"
+  },
   "files": [
     "src",
     "bin"
